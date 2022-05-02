@@ -16,6 +16,10 @@ public class EncryptCard {
         case failedToEncrypt
     }
     
+    public let keyId: String
+    public let publicKey: SecKey
+    public let subject: String
+    
     public init(key: String) throws {
         if !key.hasPrefix(Self.padding) || !key.hasSuffix(Self.padding) {
             throw Error.invalidKey("Key is not valid. Should start and end with '***'")
@@ -30,11 +34,6 @@ public class EncryptCard {
            let secKey = SecCertificateCopyKey(certificate),
            SecKeyIsAlgorithmSupported(secKey, .encrypt, .rsaEncryptionPKCS1),
            let summary = SecCertificateCopySubjectSummary(certificate) {
-            var name: CFString?
-            SecCertificateCopyCommonName(certificate, &name)
-            if let name = name {
-                commonName = name as String
-            }
             publicKey = secKey
             subject = summary as String
         } else {
@@ -43,18 +42,11 @@ public class EncryptCard {
 
     }
     
-    public var keyId: String?
-    public var publicKey: SecKey?
-    public var subject: String?
-    public var commonName: String?
     static let padding = "***"
     static let format = "GWSC"
     static let version = "1"
     
     public func encrypt(_ string: String) throws -> String {
-        guard let publicKey = publicKey, let keyId = keyId else {
-            throw Error.invalidKey("key is not set, unable to encrypt")
-        }
         let randomKey = AES.randomIV(32)
         let iv = AES.randomIV(16)
         let cypher = try AES(key: randomKey, blockMode: CBC(iv: iv), padding: .pkcs5)

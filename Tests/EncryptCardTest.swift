@@ -43,10 +43,9 @@ class EncryptCardTest: XCTestCase {
         let encrypt = try EncryptCard(key: key)
         XCTAssertEqual("14340", encrypt.keyId)
         XCTAssertEqual("www.safewebservices.com", encrypt.subject)
-        XCTAssertEqual("www.safewebservices.com", encrypt.commonName)
-        XCTAssertTrue(encrypt.publicKey.debugDescription.contains(
+        XCTAssertTrue("\(encrypt.publicKey)".contains(
             "SecKeyRef algorithm id: 1, key type: RSAPublicKey, version: 4, block size: 2048 bits"
-        ))
+        ), "should be RSA public key 2048 bits long")
     }
     func testSetKeyInvalid() throws {
         XCTAssertThrowsError(try EncryptCard(key: "invalid"), "should be invalid") { error in
