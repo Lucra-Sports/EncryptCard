@@ -11,17 +11,20 @@ import EncryptCard
 class EncryptCardTest: XCTestCase {
     var keyUrl = Bundle.module.url(forResource: "example-payment-gateway-key.txt",
                                    withExtension: nil)!
+    func encryptor() throws -> EncryptCard {
+        try EncryptCard(
+            key: try String(contentsOf: keyUrl)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+        )
+    }
+    
     func testEncryptString() throws {
-        let key = try String(contentsOf: keyUrl)
-        let encrypt = try EncryptCard(key: key)
-        let encrypted = try encrypt.encrypt("sample")
+        let encrypted = try encryptor().encrypt("sample")
         XCTAssertTrue(encrypted.hasPrefix("R1dTQ3wxfDE0MzQwf"))
     }
     func testDecodeEncrypted() throws {
         let card = CreditCard(cardNumber: "4111111111111111", expirationDate: "10/25", cvv: "123")
-        let key = try String(contentsOf: keyUrl)
-        let encrypt = try EncryptCard(key: key)
-        let encrypted = try encrypt.encrypt(creditCard: card)
+        let encrypted = try encryptor().encrypt(creditCard: card)
         XCTAssertTrue(encrypted.hasPrefix("R1dTQ3wxfDE0MzQwf"))
         
         let decodedData = try XCTUnwrap(Data(base64Encoded: encrypted))
@@ -39,11 +42,10 @@ class EncryptCardTest: XCTestCase {
         XCTAssertEqual(48, encryptedCardData.count)
     }
     func testSetKeyToValid() throws {
-        let key = try String(contentsOf: keyUrl)
-        let encrypt = try EncryptCard(key: key)
-        XCTAssertEqual("14340", encrypt.keyId)
-        XCTAssertEqual("www.safewebservices.com", encrypt.subject)
-        XCTAssertTrue("\(encrypt.publicKey)".contains(
+        let encryptor = try encryptor()
+        XCTAssertEqual("14340", encryptor.keyId)
+        XCTAssertEqual("www.safewebservices.com", encryptor.subject)
+        XCTAssertTrue("\(encryptor.publicKey)".contains(
             "SecKeyRef algorithm id: 1, key type: RSAPublicKey, version: 4, block size: 2048 bits"
         ), "should be RSA public key 2048 bits long")
     }
