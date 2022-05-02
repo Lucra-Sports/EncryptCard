@@ -51,14 +51,14 @@ public class EncryptCard {
     
     public func encrypt(_ string: String) throws -> String {
         let randomKey = AES.randomIV(32)
-        let iv = AES.randomIV(16)
-        let cypher = try AES(key: randomKey, blockMode: CBC(iv: iv), padding: .pkcs5)
+        let randomSeed = AES.randomIV(16)
+        let cypher = try AES(key: randomKey, blockMode: CBC(iv: randomSeed), padding: .pkcs5)
         return [
             Self.format,
             Self.version,
             keyId,
             try rsaEncryptFunction(publicKey, Data(randomKey)),
-            iv.toBase64(),
+            randomSeed.toBase64(),
             try cypher.encrypt(string.bytes).toBase64()
         ].joined(separator: "|").bytes.toBase64()
     }
