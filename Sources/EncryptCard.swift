@@ -16,7 +16,32 @@ public class EncryptCard {
         case failedToEncrypt
     }
     
-    public init() {}
+    public init(key: String) throws {
+        if !key.hasPrefix(Self.padding) || !key.hasSuffix(Self.padding) {
+            throw Error.invalidKey("Key is not valid. Should start and end with '***'")
+        }
+        let keys = key.trimmingCharacters(in: .init(charactersIn: "*"))
+            .components(separatedBy: .init(charactersIn: "\\|"))
+        keyId = keys.first!
+        
+        if let keyBody = keys.last,
+           let data = Data(base64Encoded: keyBody),
+           let certificate = SecCertificateCreateWithData(kCFAllocatorDefault, data as CFData),
+           let secKey = SecCertificateCopyKey(certificate),
+           SecKeyIsAlgorithmSupported(secKey, .encrypt, .rsaEncryptionPKCS1),
+           let summary = SecCertificateCopySubjectSummary(certificate) {
+            var name: CFString?
+            SecCertificateCopyCommonName(certificate, &name)
+            if let name = name {
+                commonName = name as String
+            }
+            publicKey = secKey
+            subject = summary as String
+        } else {
+            throw Error.invalidCertificate
+        }
+
+    }
     
     public var keyId: String?
     public var publicKey: SecKey?
@@ -57,32 +82,6 @@ public class EncryptCard {
     
     public func encrypt(creditCard: CreditCard, includeCVV: Bool = true) throws -> String {
         try encrypt(creditCard.directPostString(includeCVV: includeCVV))
-    }
-
-    public func setKey(_ key: String) throws {
-        if !key.hasPrefix(Self.padding) || !key.hasSuffix(Self.padding) {
-            throw Error.invalidKey("Key is not valid. Should start and end with '***'")
-        }
-        let keys = key.trimmingCharacters(in: .init(charactersIn: "*"))
-            .components(separatedBy: .init(charactersIn: "\\|"))
-        keyId = keys.first!
-        
-        if let keyBody = keys.last,
-           let data = Data(base64Encoded: keyBody),
-           let certificate = SecCertificateCreateWithData(kCFAllocatorDefault, data as CFData),
-           let secKey = SecCertificateCopyKey(certificate),
-           SecKeyIsAlgorithmSupported(secKey, .encrypt, .rsaEncryptionPKCS1),
-           let summary = SecCertificateCopySubjectSummary(certificate) {
-            var name: CFString?
-            SecCertificateCopyCommonName(certificate, &name)
-            if let name = name {
-                commonName = name as String
-            }
-            publicKey = secKey
-            subject = summary as String
-        } else {
-            throw Error.invalidCertificate
-        }
     }
 }
 
