@@ -9,16 +9,13 @@ import Foundation
 
 func rsaEncrypt(publicKey: SecKey, data: Data) throws -> String {
     var error: Unmanaged<CFError>?
-    if let result = SecKeyCreateEncryptedData(
+    let result = SecKeyCreateEncryptedData(
         publicKey,
         .rsaEncryptionPKCS1,
         data as CFData,
-        &error) {
-        return (result as Data).base64EncodedString()
-    } else {
-        if let error = error?.takeRetainedValue() {
-            throw error as Swift.Error
-        }
-        throw EncryptCard.Error.failedToEncrypt
+        &error)
+    if let failedToEncrypt = error?.takeRetainedValue() {
+        throw failedToEncrypt
     }
+    return (result! as Data).base64EncodedString()
 }
