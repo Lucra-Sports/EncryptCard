@@ -46,8 +46,8 @@ public class EncryptCard {
     static let format = "GWSC"
     static let version = "1"
     
-    typealias RsaEncryption = (_ publicKey: SecKey, _ data: Data) throws -> String
-    var rsaEncrypt: RsaEncryption = testableEncrypt
+    typealias RsaEncryptionFunction = (_ publicKey: SecKey, _ data: Data) throws -> String
+    var rsaEncryptFunction: RsaEncryptionFunction = rsaEncrypt
     
     public func encrypt(_ string: String) throws -> String {
         let randomKey = AES.randomIV(32)
@@ -57,7 +57,7 @@ public class EncryptCard {
             Self.format,
             Self.version,
             keyId,
-            try rsaEncrypt(publicKey, Data(randomKey)),
+            try rsaEncryptFunction(publicKey, Data(randomKey)),
             iv.toBase64(),
             try cypher.encrypt(string.bytes).toBase64()
         ].joined(separator: "|").bytes.toBase64()
@@ -65,21 +65,5 @@ public class EncryptCard {
     
     public func encrypt(creditCard: CreditCard, includeCVV: Bool = true) throws -> String {
         try encrypt(creditCard.directPostString(includeCVV: includeCVV))
-    }
-}
-
-func testableEncrypt(publicKey: SecKey, data: Data) throws -> String {
-    var error: Unmanaged<CFError>?
-    if let result = SecKeyCreateEncryptedData(
-        publicKey,
-        .rsaEncryptionPKCS1,
-        data as CFData,
-        &error) {
-        return (result as Data).base64EncodedString()
-    } else {
-        if let error = error?.takeRetainedValue() {
-            throw error as Swift.Error
-        }
-        throw EncryptCard.Error.failedToEncrypt
     }
 }
