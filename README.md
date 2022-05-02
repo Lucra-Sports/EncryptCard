@@ -11,5 +11,6 @@ Advantages:
 - works on M1 iOS Simulator
 - open source
 - can be recompiled for future optimizations
-- tested: unit and acceptance tests for encryption and decryption
+- unit tests
+- acceptance tests for decryption, see: https://github.com/Lucra-Sports/EncryptCardTests
 - enables storing certificate in a standard format
