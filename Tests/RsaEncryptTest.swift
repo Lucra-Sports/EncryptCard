@@ -27,4 +27,14 @@ class RsaEncryptTest: XCTestCase {
                            "One or more parameters passed to a function were not valid.")
         }
     }
+    func testReturnLongStringForEmptyData() throws {
+        let certificateUrl = Bundle.module.url(forResource: "example-certificate.cer",
+                                               withExtension: nil)!
+        
+        let data = try Data(contentsOf: certificateUrl)
+        let certificate = try XCTUnwrap(SecCertificateCreateWithData(kCFAllocatorDefault, data as CFData))
+        let secKey = try XCTUnwrap(SecCertificateCopyKey(certificate))
+        let result = try rsaEncrypt(publicKey: secKey, data: Data())
+        XCTAssertEqual(344, result.count)
+    }
 }
