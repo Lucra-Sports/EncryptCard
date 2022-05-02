@@ -16,50 +16,11 @@ public class EncryptCard {
         case failedToEncrypt
     }
     
-    public init() {}
+    public let keyId: String
+    public let publicKey: SecKey
+    public let subject: String
     
-    public var keyId: String?
-    public var publicKey: SecKey?
-    public var subject: String?
-    public var commonName: String?
-    static let padding = "***"
-    static let format = "GWSC"
-    static let version = "1"
-    
-    public func encrypt(_ string: String) throws -> String {
-        guard let publicKey = publicKey, let keyId = keyId else {
-            throw Error.invalidKey("key is not set, unable to encrypt")
-        }
-        let randomKey = AES.randomIV(32)
-        let iv = AES.randomIV(16)
-        let cypher = try AES(key: randomKey, blockMode: CBC(iv: iv), padding: .pkcs5)
-        let encoded = try cypher.encrypt(string.bytes)
-        var error: Unmanaged<CFError>?
-
-        let aesKeyData = Data(randomKey)
-        if let encryptedKey = SecKeyCreateEncryptedData(
-            publicKey,
-            .rsaEncryptionPKCS1,
-            aesKeyData as CFData,
-            &error) {
-            var result = Self.format + "|" + Self.version + "|" + keyId
-            result += "|" + (encryptedKey as Data).base64EncodedString()
-            result += "|" + iv.toBase64()
-            result += "|" + encoded.toBase64()
-            return result.bytes.toBase64()
-        } else {
-            if let error = error?.takeRetainedValue() {
-                throw error as Swift.Error
-            }
-            throw Error.failedToEncrypt
-        }
-    }
-    
-    public func encrypt(creditCard: CreditCard, includeCVV: Bool = true) throws -> String {
-        try encrypt(creditCard.directPostString(includeCVV: includeCVV))
-    }
-
-    public func setKey(_ key: String) throws {
+    public init(key: String) throws {
         if !key.hasPrefix(Self.padding) || !key.hasSuffix(Self.padding) {
             throw Error.invalidKey("Key is not valid. Should start and end with '***'")
         }
@@ -73,16 +34,36 @@ public class EncryptCard {
            let secKey = SecCertificateCopyKey(certificate),
            SecKeyIsAlgorithmSupported(secKey, .encrypt, .rsaEncryptionPKCS1),
            let summary = SecCertificateCopySubjectSummary(certificate) {
-            var name: CFString?
-            SecCertificateCopyCommonName(certificate, &name)
-            if let name = name {
-                commonName = name as String
-            }
             publicKey = secKey
             subject = summary as String
         } else {
             throw Error.invalidCertificate
         }
+
+    }
+    
+    static let padding = "***"
+    static let format = "GWSC"
+    static let version = "1"
+    
+    typealias RsaEncryptionFunction = (_ publicKey: SecKey, _ data: Data) throws -> String
+    var rsaEncryptFunction: RsaEncryptionFunction = rsaEncrypt
+    
+    public func encrypt(_ string: String) throws -> String {
+        let randomKey = AES.randomIV(32)
+        let randomSeed = AES.randomIV(16)
+        let cypher = try AES(key: randomKey, blockMode: CBC(iv: randomSeed), padding: .pkcs5)
+        return [
+            Self.format,
+            Self.version,
+            keyId,
+            try rsaEncryptFunction(publicKey, Data(randomKey)),
+            randomSeed.toBase64(),
+            try cypher.encrypt(string.bytes).toBase64()
+        ].joined(separator: "|").bytes.toBase64()
+    }
+    
+    public func encrypt(creditCard: CreditCard, includeCVV: Bool = true) throws -> String {
+        try encrypt(creditCard.directPostString(includeCVV: includeCVV))
     }
 }
-
