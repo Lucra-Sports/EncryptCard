@@ -46,30 +46,21 @@ public class EncryptCard {
     static let format = "GWSC"
     static let version = "1"
     
+    typealias RsaEncryption = (_ publicKey: SecKey, _ data: Data) throws -> String
+    var rsaEncrypt: RsaEncryption = testableEncrypt
+    
     public func encrypt(_ string: String) throws -> String {
         let randomKey = AES.randomIV(32)
         let iv = AES.randomIV(16)
         let cypher = try AES(key: randomKey, blockMode: CBC(iv: iv), padding: .pkcs5)
-        let encoded = try cypher.encrypt(string.bytes)
-        var error: Unmanaged<CFError>?
-
-        let aesKeyData = Data(randomKey)
-        if let encryptedKey = SecKeyCreateEncryptedData(
-            publicKey,
-            .rsaEncryptionPKCS1,
-            aesKeyData as CFData,
-            &error) {
-            var result = Self.format + "|" + Self.version + "|" + keyId
-            result += "|" + (encryptedKey as Data).base64EncodedString()
-            result += "|" + iv.toBase64()
-            result += "|" + encoded.toBase64()
-            return result.bytes.toBase64()
-        } else {
-            if let error = error?.takeRetainedValue() {
-                throw error as Swift.Error
-            }
-            throw Error.failedToEncrypt
-        }
+        return [
+            Self.format,
+            Self.version,
+            keyId,
+            try rsaEncrypt(publicKey, Data(randomKey)),
+            iv.toBase64(),
+            try cypher.encrypt(string.bytes).toBase64()
+        ].joined(separator: "|").bytes.toBase64()
     }
     
     public func encrypt(creditCard: CreditCard, includeCVV: Bool = true) throws -> String {
@@ -77,3 +68,18 @@ public class EncryptCard {
     }
 }
 
+func testableEncrypt(publicKey: SecKey, data: Data) throws -> String {
+    var error: Unmanaged<CFError>?
+    if let result = SecKeyCreateEncryptedData(
+        publicKey,
+        .rsaEncryptionPKCS1,
+        data as CFData,
+        &error) {
+        return (result as Data).base64EncodedString()
+    } else {
+        if let error = error?.takeRetainedValue() {
+            throw error as Swift.Error
+        }
+        throw EncryptCard.Error.failedToEncrypt
+    }
+}
