@@ -47,11 +47,14 @@ public class EncryptCard {
     static let version = "1"
     
     typealias RsaEncryptionFunction = (_ publicKey: SecKey, _ data: Data) throws -> String
-    var rsaEncryptFunction: RsaEncryptionFunction = rsaEncrypt
-    
+    var rsaEncryptFunction: RsaEncryptionFunction = rsaEncrypt(publicKey:data:)
+
+    typealias RandomFunction = (_ size: Int) -> Data
+    var randomFunction: RandomFunction = secureRandom(size:)
+
     public func encrypt(_ string: String) throws -> String {
-        let randomKey = AES.randomIV(32)
-        let randomSeed = AES.randomIV(16)
+        let randomKey = randomFunction(32).bytes
+        let randomSeed = randomFunction(16).bytes
         let cypher = try AES(key: randomKey, blockMode: CBC(iv: randomSeed), padding: .pkcs5)
         return [
             Self.format,
