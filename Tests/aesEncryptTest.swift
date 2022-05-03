@@ -27,4 +27,11 @@ class aesEncryptTest: XCTestCase {
         let encData = try XCTUnwrap(Data(base64Encoded: encrypted))
         XCTAssertEqual(encData.count % kCCBlockSizeAES128, 0, "should be in blocks")
     }
+    func testAesEncryptThrowsForInvalidKeySize() throws {
+        XCTAssertThrowsError(try aesEncrypt(key: Data(), seed: Data(), string: ""), "should be invalid") { error in
+            let nsError = error as NSError
+            XCTAssertEqual(nsError.domain, NSOSStatusErrorDomain)
+            XCTAssertEqual(nsError.code, kCCKeySizeError)
+        }
+    }
 }
