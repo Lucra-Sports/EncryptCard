@@ -9,6 +9,14 @@ import XCTest
 import CommonCrypto
 
 class aesEncryptTest: XCTestCase {
+    func testSecureRandom() {
+        let count = 10
+        var bytes = [UInt8](repeating: 0, count: count)
+        let status = SecRandomCopyBytes(kSecRandomDefault, count, &bytes)
+        XCTAssertEqual(status, errSecSuccess)
+        let average = UInt8(bytes.map(Int.init).reduce(0, +) / count)
+        XCTAssertEqual(average, UInt8.max / 2, accuracy: UInt8.max / 4)
+    }
     func testAesEncrypt() {
         let keyData = String(repeating: "K", count: kCCKeySizeAES256)
         let ivData = String(repeating: "I", count: kCCBlockSizeAES128)
