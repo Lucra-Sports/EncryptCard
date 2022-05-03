@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import CryptoSwift
 
 public class EncryptCard {
     public enum Error: Swift.Error {
@@ -49,21 +48,24 @@ public class EncryptCard {
     typealias RsaEncryptionFunction = (_ publicKey: SecKey, _ data: Data) throws -> String
     var rsaEncryptFunction: RsaEncryptionFunction = rsaEncrypt(publicKey:data:)
 
+    typealias AesEncryptionFunction = (_ key: Data, _ seed: Data, _ string: String) throws -> String
+    var aesEncryptFunction: AesEncryptionFunction = aesEncrypt(key:seed:string:)
+
     typealias RandomFunction = (_ size: Int) -> Data
     var randomFunction: RandomFunction = secureRandom(size:)
 
     public func encrypt(_ string: String) throws -> String {
-        let randomKey = randomFunction(32).bytes
-        let randomSeed = randomFunction(16).bytes
-        let cypher = try AES(key: randomKey, blockMode: CBC(iv: randomSeed), padding: .pkcs5)
+        let randomKey = randomFunction(32)
+        let randomSeed = randomFunction(16)
+        let encryptedSting = try aesEncryptFunction(randomKey, randomSeed, string)
         return [
             Self.format,
             Self.version,
             keyId,
-            try rsaEncryptFunction(publicKey, Data(randomKey)),
-            randomSeed.toBase64(),
-            try cypher.encrypt(string.bytes).toBase64()
-        ].joined(separator: "|").bytes.toBase64()
+            try rsaEncryptFunction(publicKey, randomKey),
+            randomSeed.base64EncodedString(),
+            encryptedSting
+        ].joined(separator: "|").data(using: .ascii)!.base64EncodedString()
     }
     
     public func encrypt(creditCard: CreditCard, includeCVV: Bool = true) throws -> String {

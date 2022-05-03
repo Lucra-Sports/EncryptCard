@@ -17,7 +17,6 @@ class EncryptCardTest: XCTestCase {
                 .trimmingCharacters(in: .whitespacesAndNewlines)
         )
     }
-    
     func testEncryptString() throws {
         let encrypted = try encryptor().encrypt("sample")
         XCTAssertTrue(encrypted.hasPrefix("R1dTQ3wxfDE0MzQwf"))
