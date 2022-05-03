@@ -23,7 +23,7 @@ func aesEncrypt(key: Data, seed: Data, string: String) throws -> String {
                         keyBytes.baseAddress, key.count,
                         seedBytes.baseAddress,
                         stringBuffer.baseAddress, string.count,
-                        buffer.baseAddress!, buffer.count,
+                        buffer.baseAddress, buffer.count,
                         &resultLength
                     )
                 }
