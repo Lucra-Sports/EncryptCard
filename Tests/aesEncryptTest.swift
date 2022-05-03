@@ -9,7 +9,7 @@ import XCTest
 import CommonCrypto
 @testable import EncryptCard
 
-class aesEncryptTest: XCTestCase {
+class AesEncryptTest: XCTestCase {
     func testSecureRandom() {
         let count = 10000
         let data = secureRandom(size: count)
