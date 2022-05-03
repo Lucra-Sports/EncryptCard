@@ -15,15 +15,9 @@ let package = Package(
             targets: ["EncryptCard"]
         ),
     ],
-    dependencies: [
-        .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", .upToNextMajor(from: "1.5.1"))
-    ],
     targets: [
         .target(
             name: "EncryptCard",
-            dependencies: [
-                .product(name: "CryptoSwift", package: "CryptoSwift"),
-            ],
             path: "Sources"
         ),
         .testTarget(
