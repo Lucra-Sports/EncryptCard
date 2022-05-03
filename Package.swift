@@ -25,10 +25,7 @@ let package = Package(
             dependencies: ["EncryptCard"],
             path: "Tests",
             resources: [
-                .copy("example-certificate.cer"),
-                .copy("example-certificate.pem.txt"),
-                .copy("example-payment-gateway-key.txt"),
-                .copy("example-private-key.txt")
+                .copy("keys"),
             ]
         ),
     ],

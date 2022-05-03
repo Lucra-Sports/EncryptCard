@@ -28,7 +28,7 @@ class RsaEncryptTest: XCTestCase {
         }
     }
     func testReturnLongStringForEmptyData() throws {
-        let certificateUrl = Bundle.module.url(forResource: "example-certificate.cer",
+        let certificateUrl = Bundle.module.url(forResource: "keys/example-certificate.cer",
                                                withExtension: nil)!
         
         let data = try Data(contentsOf: certificateUrl)

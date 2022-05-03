@@ -10,7 +10,7 @@ import XCTest
 import CommonCrypto
 
 class EncryptCardTest: XCTestCase {
-    var keyUrl = Bundle.module.url(forResource: "example-payment-gateway-key.txt",
+    var keyUrl = Bundle.module.url(forResource: "keys/example-payment-gateway-key.txt",
                                    withExtension: nil)!
     func encryptor() throws -> EncryptCard {
         try EncryptCard(
