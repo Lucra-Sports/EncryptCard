@@ -20,7 +20,7 @@ public class EncryptCard {
     public let subject: String
     
     public init(key: String) throws {
-        if !key.hasPrefix(Self.padding) || !key.hasSuffix(Self.padding) {
+        guard key.hasPrefix(Self.padding) && key.hasSuffix(Self.padding) else {
             throw Error.invalidKey("Key is not valid. Should start and end with '***'")
         }
         let keys = key.trimmingCharacters(in: .init(charactersIn: "*"))
@@ -45,14 +45,9 @@ public class EncryptCard {
     static let format = "GWSC"
     static let version = "1"
     
-    typealias RsaEncryptionFunction = (_ publicKey: SecKey, _ data: Data) throws -> String
-    var rsaEncryptFunction: RsaEncryptionFunction = rsaEncrypt(publicKey:data:)
-
-    typealias AesEncryptionFunction = (_ key: Data, _ seed: Data, _ string: String) throws -> String
-    var aesEncryptFunction: AesEncryptionFunction = aesEncrypt(key:seed:string:)
-
-    typealias RandomFunction = (_ size: Int) -> Data
-    var randomFunction: RandomFunction = secureRandom(size:)
+    var rsaEncryptFunction: FunctionType.RSA = rsaEncrypt(publicKey:data:)
+    var aesEncryptFunction: FunctionType.AES = aesEncrypt(key:seed:string:)
+    var randomFunction: FunctionType.SecureRandom = secureRandom(size:)
 
     public func encrypt(_ string: String) throws -> String {
         let randomKey = randomFunction(32)

@@ -19,7 +19,3 @@ func rsaEncrypt(publicKey: SecKey, data: Data) throws -> String {
     }
     return (result! as Data).base64EncodedString()
 }
-
-func secureRandom(size: Int) -> Data {
-    Data((0..<size).map { _ in UInt8.random(in:UInt8.min...UInt8.max) })
-}
