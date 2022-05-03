@@ -10,21 +10,17 @@ import CommonCrypto
 @testable import EncryptCard
 
 class aesEncryptTest: XCTestCase {
-    func secureRandom(size: Int) throws -> Data {
-        var bytes = [UInt8](repeating: 0, count: size)
-        let status = SecRandomCopyBytes(kSecRandomDefault, size, &bytes)
-        guard status == errSecSuccess else {
-            throw NSError(domain: NSOSStatusErrorDomain, code: Int(status))
-        }
-        return Data(bytes)
+    func secureRandom(size: Int) -> Data {
+        Data((0..<size).map { _ in UInt8.random(in:UInt8.min...UInt8.max) })
     }
     func testSecureRandom() {
-        let count = 10
-        var bytes = [UInt8](repeating: 0, count: count)
-        let status = SecRandomCopyBytes(kSecRandomDefault, count, &bytes)
-        XCTAssertEqual(status, errSecSuccess)
-        let average = UInt8(bytes.map(Int.init).reduce(0, +) / count)
-        XCTAssertEqual(average, UInt8.max / 2, accuracy: UInt8.max / 4)
+        let count = 10000
+        let data = secureRandom(size: count)
+        XCTAssertTrue(data.contains(UInt8.max), "should include max")
+        XCTAssertTrue(data.contains(UInt8.min), "should include main")
+        let average = UInt8(data.bytes.map(Int.init).reduce(0, +) / count)
+        XCTAssertEqual(average, UInt8.max / 2, accuracy: UInt8.max / 4,
+                       "average should be middle value with 0.25 of range accuracy")
     }
     func testAesEncryptReturnsStablePaddedResult() throws {
         let keyData = Data(repeating: 0, count: kCCKeySizeAES256)
