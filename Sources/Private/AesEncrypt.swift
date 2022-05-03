@@ -10,19 +10,20 @@ import CommonCrypto
 
 func aesEncrypt(key: Data, seed: Data, string: String) throws -> String {
     let padLength = kCCBlockSizeAES128
-    var result = Data(repeating: .zero, count: string.count + padLength)
     var resultLength: size_t = 0
+    let cCharArray = string.utf8CString
+    var result = Data(repeating: .zero, count: cCharArray.count + padLength)
     let error = result.withUnsafeMutableBytes { buffer  in
         seed.withUnsafeBytes { seedBytes in
             key.withUnsafeBytes { keyBytes in
-                string.utf8CString.withUnsafeBytes { stringBuffer in
+                cCharArray.withUnsafeBytes { stringBuffer in
                     CCCrypt(
                         CCOperation(kCCEncrypt),
                         CCAlgorithm(kCCAlgorithmAES),
                         CCOptions(kCCOptionPKCS7Padding),
                         keyBytes.baseAddress, key.count,
                         seedBytes.baseAddress,
-                        stringBuffer.baseAddress, string.count,
+                        stringBuffer.baseAddress, cCharArray.count - 1,
                         buffer.baseAddress, buffer.count,
                         &resultLength
                     )
