@@ -8,6 +8,17 @@
 import Foundation
 import CommonCrypto
 import XCTest
+@testable import EncryptCard
+
+struct FakeAES: PrivateEncryptor {
+    var key: Data
+    
+    var seed: Data
+    
+    func encrypt(data: Data) throws -> Data {
+        " AES ".data(using: .utf8)!
+    }
+}
 
 struct Fake {
     static let AES_key = "AES random key"
@@ -18,6 +29,8 @@ struct Fake {
             kCCBlockSizeAES128: AES_seed
         ][size]!.data(using: .ascii)!
     }
+    static let fakeAES = FakeAES(key: AES_key.data(using: .utf8)!, seed: AES_seed.data(using: .utf8)!)
+    static let fakeResult: String = try! fakeAES.encrypt(data: Data())
     static func AES_encryption(key: Data, seed: Data, data: Data) throws -> String {
         XCTAssertEqual(String(data: key, encoding: .ascii),
                        AES_key)

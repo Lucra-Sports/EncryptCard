@@ -48,18 +48,18 @@ public class EncryptCard {
     var rsaEncryptFunction: FunctionType.RSA = rsaEncrypt(publicKey:data:)
     var aesEncryptFunction: FunctionType.AES = aesEncrypt(key:seed:data:)
     var randomFunction: FunctionType.SecureRandom = secureRandom(size:)
+    lazy var publicEncryptor: Encryptor = RSA(publicKey: publicKey)
+    var privateEncryptorFactory: () -> PrivateEncryptor = { AES() }
 
     public func encrypt(_ string: String) throws -> String {
-        let randomKey = randomFunction(32)
-        let randomSeed = randomFunction(16)
-        let encryptedSting = try aesEncryptFunction(randomKey, randomSeed, string.data(using: .utf8)!)
+        let aes = privateEncryptorFactory()
         return [
             Self.format,
             Self.version,
             keyId,
-            try rsaEncryptFunction(publicKey, randomKey),
-            randomSeed.base64EncodedString(),
-            encryptedSting
+            try rsaEncryptFunction(publicKey, aes.key),
+            aes.seed.base64EncodedString(),
+            try aes.encrypt(string: string)
         ].joined(separator: "|").data(using: .ascii)!.base64EncodedString()
     }
     

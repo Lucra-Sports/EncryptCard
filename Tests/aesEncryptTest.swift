@@ -16,6 +16,7 @@ class AesEncryptTest: XCTestCase {
         let input = Data(repeating: 0, count: 20)
         let encrypted = try aesEncrypt(key: keyData, seed: ivData, data: input)
         XCTAssertEqual(encrypted, "3JXAeKJAiYmtSKIUkoQgh/qXGJ8YGa1hm/8h+bLBAPA=")
+        XCTAssertEqual(encrypted, try aesEncrypt(key: keyData, seed: ivData, data: input))
         let encData = try XCTUnwrap(Data(base64Encoded: encrypted))
         XCTAssertEqual(encData.count % kCCBlockSizeAES128, 0, "should be in blocks")
     }

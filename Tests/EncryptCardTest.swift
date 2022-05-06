@@ -23,11 +23,12 @@ class EncryptCardTest: XCTestCase {
         encryptor.randomFunction = Fake.randomGenerator(size:)
         encryptor.aesEncryptFunction = Fake.AES_encryption(key:seed:data:)
         encryptor.rsaEncryptFunction = Fake.RSA_encrypttion(publicKey:data:)
+        encryptor.privateEncryptorFactory = { Fake.fakeAES }
         let card = CreditCard(cardNumber: "4111111111111111", expirationDate: "10/25", cvv: "123")
         let encrypted = try encryptor.encrypt(creditCard: card)
         let data = try XCTUnwrap(Data(base64Encoded: encrypted))
         let decoded = try XCTUnwrap(String(data: data, encoding: .ascii))
-        XCTAssertEqual(decoded, "GWSC|1|14340| RSA |QUVTIHJhbmRvbSBzZWVk| AES ",
+        XCTAssertEqual(decoded, "GWSC|1|14340| RSA |QUVTIHJhbmRvbSBzZWVk|IEFFUyA=",
                        "should be format,version,key id, RSA, base64 encoded seed, AES encrypted data")
         
         let components = decoded.components(separatedBy: "|")
@@ -39,7 +40,7 @@ class EncryptCardTest: XCTestCase {
         let seedData = try XCTUnwrap(Data(base64Encoded: components[4]))
         XCTAssertEqual(String(data: seedData, encoding: .ascii),
                        Fake.AES_seed)
-        XCTAssertEqual(" AES ", components[5], "AES encrypted string")
+        XCTAssertEqual(Fake.fakeResult, components[5], "AES encrypted string")
     }
     func testValidKey() throws {
         let encryptor = try encryptor()
