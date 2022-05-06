@@ -46,13 +46,13 @@ public class EncryptCard {
     static let version = "1"
     
     var rsaEncryptFunction: FunctionType.RSA = rsaEncrypt(publicKey:data:)
-    var aesEncryptFunction: FunctionType.AES = aesEncrypt(key:seed:string:)
+    var aesEncryptFunction: FunctionType.AES = aesEncrypt(key:seed:data:)
     var randomFunction: FunctionType.SecureRandom = secureRandom(size:)
 
     public func encrypt(_ string: String) throws -> String {
         let randomKey = randomFunction(32)
         let randomSeed = randomFunction(16)
-        let encryptedSting = try aesEncryptFunction(randomKey, randomSeed, string)
+        let encryptedSting = try aesEncryptFunction(randomKey, randomSeed, string.data(using: .utf8)!)
         return [
             Self.format,
             Self.version,

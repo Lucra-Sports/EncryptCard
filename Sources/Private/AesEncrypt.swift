@@ -8,22 +8,21 @@
 import Foundation
 import CommonCrypto
 
-func aesEncrypt(key: Data, seed: Data, string: String) throws -> String {
+func aesEncrypt(key: Data, seed: Data, data: Data) throws -> String {
     let padLength = kCCBlockSizeAES128
     var resultLength: size_t = 0
-    let cCharArray = string.utf8CString
-    var result = Data(repeating: .zero, count: cCharArray.count + padLength)
+    var result = Data(repeating: .zero, count: data.count + padLength)
     let error = result.withUnsafeMutableBytes { buffer  in
         seed.withUnsafeBytes { seedBytes in
             key.withUnsafeBytes { keyBytes in
-                cCharArray.withUnsafeBytes { stringBuffer in
+                data.withUnsafeBytes { stringBuffer in
                     CCCrypt(
                         CCOperation(kCCEncrypt),
                         CCAlgorithm(kCCAlgorithmAES),
                         CCOptions(kCCOptionPKCS7Padding),
                         keyBytes.baseAddress, key.count,
                         seedBytes.baseAddress,
-                        stringBuffer.baseAddress, cCharArray.count - 1,
+                        stringBuffer.baseAddress, data.count,
                         buffer.baseAddress, buffer.count,
                         &resultLength
                     )

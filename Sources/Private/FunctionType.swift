@@ -9,6 +9,6 @@ import Foundation
 
 enum FunctionType {
     typealias RSA = (_ publicKey: SecKey, _ data: Data) throws -> String
-    typealias AES = (_ key: Data, _ seed: Data, _ string: String) throws -> String
+    typealias AES = (_ key: Data, _ seed: Data, _ data: Data) throws -> String
     typealias SecureRandom = (_ size: Int) -> Data
 }

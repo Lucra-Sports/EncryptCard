@@ -18,12 +18,13 @@ struct Fake {
             kCCBlockSizeAES128: AES_seed
         ][size]!.data(using: .ascii)!
     }
-    static func AES_encryption(key: Data, seed: Data, inputString: String) throws -> String {
+    static func AES_encryption(key: Data, seed: Data, data: Data) throws -> String {
         XCTAssertEqual(String(data: key, encoding: .ascii),
                        AES_key)
         XCTAssertEqual(String(data: seed, encoding: .ascii),
                        AES_seed)
-        XCTAssertEqual("ccnumber=4111111111111111&ccexp=10/25&cvv=123", inputString,
+        XCTAssertEqual("ccnumber=4111111111111111&ccexp=10/25&cvv=123".data(using: .utf8)!,
+                       data,
                        "should encrypt credit card sting")
         return " AES "
     }
