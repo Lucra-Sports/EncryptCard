@@ -26,20 +26,20 @@ struct AES {
 
 extension AES: PrivateEncryptor {
     func encrypt(data: Data) throws -> Data {
-        let padLength = kCCBlockSizeAES128
+        let padding = kCCBlockSizeAES128
         var resultLength: size_t = 0
-        var result = Data(repeating: .zero, count: data.count + padLength)
-        let error = result.withUnsafeMutableBytes { buffer  in
+        var result = Data(repeating: .zero, count: data.count + padding)
+        let error = result.withUnsafeMutableBytes { buffer in
             seed.withUnsafeBytes { seedBytes in
                 key.withUnsafeBytes { keyBytes in
-                    data.withUnsafeBytes { stringBuffer in
+                    data.withUnsafeBytes { dataBytes in
                         CCCrypt(
                             CCOperation(kCCEncrypt),
                             CCAlgorithm(kCCAlgorithmAES),
                             CCOptions(kCCOptionPKCS7Padding),
                             keyBytes.baseAddress, key.count,
                             seedBytes.baseAddress,
-                            stringBuffer.baseAddress, data.count,
+                            dataBytes.baseAddress, data.count,
                             buffer.baseAddress, buffer.count,
                             &resultLength
                         )

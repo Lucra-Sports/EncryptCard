@@ -57,7 +57,13 @@ public class EncryptCard {
     lazy var publicEncryptor: Encryptor = RSA(publicKey: publicKey)
     var privateEncryptorFactory: () -> PrivateEncryptor = { AES() }
 
-    public func encrypt(_ string: String) throws -> String {
+    public func encrypt(creditCard: CreditCard, includeCVV: Bool = true) throws -> String {
+        try encrypt(string: creditCard.directPostString(includeCVV: includeCVV))
+    }
+}
+
+extension EncryptCard: Encryptor {
+    func encrypt(data: Data) throws -> Data {
         let aes = privateEncryptorFactory()
         return [
             Self.format,
@@ -65,11 +71,7 @@ public class EncryptCard {
             keyId,
             try publicEncryptor.encrypt(data: aes.key),
             aes.seed.base64EncodedString(),
-            try aes.encrypt(string: string)
-        ].joined(separator: "|").data(using: .ascii)!.base64EncodedString()
-    }
-    
-    public func encrypt(creditCard: CreditCard, includeCVV: Bool = true) throws -> String {
-        try encrypt(creditCard.directPostString(includeCVV: includeCVV))
+            try aes.encrypt(data: data)
+        ].joined(separator: "|").data(using: .ascii)!
     }
 }
