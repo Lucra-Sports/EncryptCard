@@ -20,8 +20,6 @@ class EncryptCardTest: XCTestCase {
     }
     func testEncryptCreditCard() throws {
         let encryptor = try encryptor()
-        encryptor.randomFunction = Fake.randomGenerator(size:)
-        encryptor.rsaEncryptFunction = Fake.RSA_encrypttion(publicKey:data:)
         encryptor.privateEncryptorFactory = { Fake.aes }
         encryptor.publicEncryptor = FakeRSA()
         let card = CreditCard(cardNumber: "4111111111111111", expirationDate: "10/25", cvv: "123")

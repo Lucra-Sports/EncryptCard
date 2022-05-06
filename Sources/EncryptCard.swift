@@ -45,9 +45,6 @@ public class EncryptCard {
     static let format = "GWSC"
     static let version = "1"
     
-    var rsaEncryptFunction: FunctionType.RSA = rsaEncrypt(publicKey:data:)
-    var aesEncryptFunction: FunctionType.AES = aesEncrypt(key:seed:data:)
-    var randomFunction: FunctionType.SecureRandom = secureRandom(size:)
     lazy var publicEncryptor: Encryptor = RSA(publicKey: publicKey)
     var privateEncryptorFactory: () -> PrivateEncryptor = { AES() }
 
