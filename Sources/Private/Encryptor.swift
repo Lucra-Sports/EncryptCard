@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import CommonCrypto
 
 protocol Encryptor {
     func encrypt(data: Data) throws -> Data
@@ -18,16 +17,6 @@ extension Encryptor {
     }
     func encrypt(string: String) throws -> String {
         try encrypt(data: string.data(using: .utf8)!)
-    }
-}
-
-struct RSA {
-    let publicKey: SecKey
-}
-
-extension RSA: Encryptor {
-    func encrypt(data: Data) throws -> Data {
-        data
     }
 }
 

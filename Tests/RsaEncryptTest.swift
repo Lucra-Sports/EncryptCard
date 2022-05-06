@@ -7,11 +7,13 @@
 
 import XCTest
 @testable import EncryptCard
+import CommonCrypto
 
 class RsaEncryptTest: XCTestCase {
-    func testReturnsLongStringForEmptyData() throws {
-        let result = try rsaEncrypt(publicKey: sampleKey(), data: Data())
-        XCTAssertEqual(344, result.count)
+    func testReturnsBlockSizeForEmptyData() throws {
+        let key = try sampleKey()
+        let result = try RSA(publicKey: key).encrypt(data: Data())
+        XCTAssertEqual(SecKeyGetBlockSize(key), result.count)
     }
     func testThrowForInvalidKey() throws {
         let attributes = [
@@ -20,7 +22,7 @@ class RsaEncryptTest: XCTestCase {
             kSecAttrKeySizeInBits: 2048,
         ] as CFDictionary
         let key = try XCTUnwrap(SecKeyCreateRandomKey(attributes, nil))
-        XCTAssertThrowsError(try rsaEncrypt(publicKey: key, data: Data())) { error in
+        XCTAssertThrowsError(try RSA(publicKey: key).encrypt(data: Data())) { error in
             let errorDescription = description(error: error)
             XCTAssertTrue(errorDescription
                 .hasPrefix("algid:encrypt:RSA:PKCS1: algorithm not supported by the key"),
@@ -30,7 +32,7 @@ class RsaEncryptTest: XCTestCase {
     }
     func testSampleKeyCanNotDecrypt() throws {
         let key = try sampleKey()
-        let data = try XCTUnwrap(Data(base64Encoded: try rsaEncrypt(publicKey: key, data: Data())))
+        let data = try RSA(publicKey: key).encrypt(data: Data())
         var error: Unmanaged<CFError>?
         XCTAssertNil(SecKeyCreateDecryptedData(key, .rsaEncryptionPKCS1, data as CFData, &error))
         let failed = try XCTUnwrap(error).takeRetainedValue()
@@ -55,9 +57,9 @@ class RsaEncryptTest: XCTestCase {
         let maxLength = blockSize - pkcs1Padding
         XCTAssertEqual(maxLength, 245)
         var maxLengthData = Data(repeating: 0, count: maxLength)
-        XCTAssertNoThrow(try rsaEncrypt(publicKey: key, data: maxLengthData))
+        XCTAssertNoThrow(try RSA(publicKey: key).encrypt(data: maxLengthData))
         maxLengthData.append(0)
-        XCTAssertThrowsError(try rsaEncrypt(publicKey: sampleKey(), data: maxLengthData)) { error in
+        XCTAssertThrowsError(try RSA(publicKey: sampleKey()).encrypt(data: maxLengthData)) { error in
             XCTAssertEqual(description(error: error), "RSAencrypt wrong input size (err -23)")
         }
     }
