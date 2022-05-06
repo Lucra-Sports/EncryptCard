@@ -31,26 +31,6 @@ extension RSA: Encryptor {
     }
 }
 
-struct AES: PrivateEncryptor {
-    let key: Data
-    let seed: Data
-    
-    init(key: Data, seed: Data) {
-        self.key = key
-        self.seed = seed
-    }
-    init() {
-        self.init(
-            key: secureRandom(size: kCCKeySizeAES256),
-            seed: secureRandom(size: kCCBlockSizeAES128)
-        )
-    }
-
-    func encrypt(data: Data) throws -> Data {
-        data
-    }
-}
-
 protocol PrivateEncryptor: Encryptor {
     var key: Data { get }
     var seed: Data { get }
