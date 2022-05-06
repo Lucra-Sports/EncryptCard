@@ -58,8 +58,17 @@ class EncryptCardTest: XCTestCase {
             }
         }
     }
+    func testInvalidKeyEncoding() throws {
+        XCTAssertThrowsError(try EncryptCard(key: "***123***"), "not base64") { error in
+            if case let .invalidKey(message) = error as? EncryptCard.Error {
+                XCTAssertEqual(message, "Key is not valid. Should be Base64 encoded")
+            } else {
+                XCTFail("should be invalid certificate error")
+            }
+        }
+    }
     func testInvalidCertificate() throws {
-        XCTAssertThrowsError(try EncryptCard(key: "***123***"), "should be invalid") { error in
+        XCTAssertThrowsError(try EncryptCard(key: "***QUJD***"), "ABC encoded should be invalid") { error in
             if case .invalidCertificate = error as? EncryptCard.Error {
                 return
             } else {
