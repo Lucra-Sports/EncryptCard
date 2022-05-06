@@ -21,14 +21,14 @@ class EncryptCardTest: XCTestCase {
     func testEncryptCreditCard() throws {
         let encryptor = try encryptor()
         encryptor.randomFunction = Fake.randomGenerator(size:)
-        encryptor.aesEncryptFunction = Fake.AES_encryption(key:seed:data:)
         encryptor.rsaEncryptFunction = Fake.RSA_encrypttion(publicKey:data:)
-        encryptor.privateEncryptorFactory = { Fake.fakeAES }
+        encryptor.privateEncryptorFactory = { Fake.aes }
+        encryptor.publicEncryptor = FakeRSA()
         let card = CreditCard(cardNumber: "4111111111111111", expirationDate: "10/25", cvv: "123")
         let encrypted = try encryptor.encrypt(creditCard: card)
         let data = try XCTUnwrap(Data(base64Encoded: encrypted))
         let decoded = try XCTUnwrap(String(data: data, encoding: .ascii))
-        XCTAssertEqual(decoded, "GWSC|1|14340| RSA |QUVTIHJhbmRvbSBzZWVk|IEFFUyA=",
+        XCTAssertEqual(decoded, "GWSC|1|14340|IFJTQSA=|QUVTIHJhbmRvbSBzZWVk|IEFFUyA=",
                        "should be format,version,key id, RSA, base64 encoded seed, AES encrypted data")
         
         let components = decoded.components(separatedBy: "|")
@@ -36,11 +36,12 @@ class EncryptCardTest: XCTestCase {
         XCTAssertEqual("GWSC", components[0], "format specifier")
         XCTAssertEqual("1", components[1], "version")
         XCTAssertEqual("14340", components[2], "key id")
-        XCTAssertEqual(" RSA ", components[3], "RSA encrypted string")
-        let seedData = try XCTUnwrap(Data(base64Encoded: components[4]))
-        XCTAssertEqual(String(data: seedData, encoding: .ascii),
-                       Fake.AES_seed)
-        XCTAssertEqual(Fake.fakeResult, components[5], "AES encrypted string")
+        XCTAssertEqual(base64(" RSA "), components[3], "RSA encrypted string")
+        XCTAssertEqual(base64(Fake.AES_seed), components[4])
+        XCTAssertEqual(base64(" AES "), components[5], "AES encrypted string")
+    }
+    func base64(_ string: String) -> String {
+        string.data(using: .utf8)!.base64EncodedString()
     }
     func testValidKey() throws {
         let encryptor = try encryptor()

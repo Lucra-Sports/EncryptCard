@@ -57,7 +57,7 @@ public class EncryptCard {
             Self.format,
             Self.version,
             keyId,
-            try rsaEncryptFunction(publicKey, aes.key),
+            try publicEncryptor.encrypt(data: aes.key),
             aes.seed.base64EncodedString(),
             try aes.encrypt(string: string)
         ].joined(separator: "|").data(using: .ascii)!.base64EncodedString()
