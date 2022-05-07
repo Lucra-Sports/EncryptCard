@@ -38,6 +38,9 @@ class EncryptCardTest: XCTestCase {
         XCTAssertEqual(base64(Fake.AES_seed), components[4])
         XCTAssertEqual(base64(" AES "), components[5], "AES encrypted string")
     }
+    func testSubject() throws {
+        XCTAssertEqual(try encryptor().subject, "www.safewebservices.com")
+    }
     func base64(_ string: String) -> String {
         string.data(using: .utf8)!.base64EncodedString()
     }

@@ -15,7 +15,6 @@ class RsaEncryptTest: XCTestCase {
         let result = try RSA(publicKey: key).encrypt(data: Data())
         XCTAssertEqual(SecKeyGetBlockSize(key), result.count)
     }
-    
     func testRsaEncryptRandomization() throws {
         let inputData = Data()
         let rsa = try RSA(publicKey: sampleKey())
@@ -72,13 +71,16 @@ class RsaEncryptTest: XCTestCase {
             XCTAssertEqual(description(error: error), "RSAencrypt wrong input size (err -23)")
         }
     }
+    
     func sampleKey() throws -> SecKey {
+        try XCTUnwrap(SecCertificateCopyKey(sampleCertificate()))
+    }
+    func sampleCertificate() throws -> SecCertificate {
         let certificateUrl = Bundle.module.url(forResource: "keys/example-certificate.cer",
                                                withExtension: nil)!
         
         let data = try Data(contentsOf: certificateUrl)
-        let certificate = try XCTUnwrap(SecCertificateCreateWithData(kCFAllocatorDefault, data as CFData))
-        return try XCTUnwrap(SecCertificateCopyKey(certificate))
+        return try XCTUnwrap(SecCertificateCreateWithData(kCFAllocatorDefault, data as CFData))
     }
     func description(error: Error) -> String {
         let nsError = error as NSError
