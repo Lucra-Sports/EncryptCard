@@ -33,21 +33,17 @@ public class EncryptCard {
         }
     }
     
-    public convenience init(keyId: String, certificate data: Data) throws {
+    public init(keyId: String, certificate data: Data) throws {
         if let certificate = SecCertificateCreateWithData(kCFAllocatorDefault, data as CFData),
            let secKey = SecCertificateCopyKey(certificate),
            SecKeyIsAlgorithmSupported(secKey, .encrypt, .rsaEncryptionPKCS1),
            let summary = SecCertificateCopySubjectSummary(certificate) {
-            self.init(keyId: keyId, publicKey: secKey, subject: summary as String)
+            self.keyId = keyId
+            self.publicKey = secKey
+            self.subject = summary as String
         } else {
             throw Error.invalidCertificate
         }
-    }
-    
-    public init(keyId: String, publicKey: SecKey, subject: String) {
-        self.keyId = keyId
-        self.publicKey = publicKey
-        self.subject = subject
     }
     
     static let padding = "***"

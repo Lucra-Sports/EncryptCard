@@ -22,6 +22,6 @@ extension RSA: Encryptor {
         if let failedToEncrypt = error?.takeRetainedValue() {
             throw failedToEncrypt
         }
-        return (result! as Data)
+        return result! as Data
     }
 }
