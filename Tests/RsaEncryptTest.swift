@@ -15,6 +15,15 @@ class RsaEncryptTest: XCTestCase {
         let result = try RSA(publicKey: key).encrypt(data: Data())
         XCTAssertEqual(SecKeyGetBlockSize(key), result.count)
     }
+    
+    func testRsaEncryptRandomization() throws {
+        let inputData = Data()
+        let rsa = try RSA(publicKey: sampleKey())
+        let first = try rsa.encrypt(data: inputData)
+        let second = try rsa.encrypt(data: inputData)
+        XCTAssertNotEqual(first, second, "even when given same key and input data, output is different")
+        try XCTAssertEqual(sampleKey(), sampleKey(), "loaded from same certificates keys are equal")
+    }
     func testThrowForInvalidKey() throws {
         let attributes = [
             kSecAttrKeyClass: kSecAttrKeyClassPublic,
