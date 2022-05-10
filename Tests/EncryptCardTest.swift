@@ -18,32 +18,46 @@ class EncryptCardTest: XCTestCase {
                 .trimmingCharacters(in: .whitespacesAndNewlines)
         )
     }
+    
+    let prefix = "GWSC|1|14340".data(using: .utf8)!.base64EncodedString()
+    
+    func testEncryptReturnsDifferentStringsEachTime() throws {
+        let encryptor = try encryptor()
+        let card = CreditCard(cardNumber: "3541963594572595", expirationDate: "12/20", cvv: "999")
+        let encrypted1 = try encryptor.encrypt(creditCard: card)
+        let encrypted2 = try encryptor.encrypt(creditCard: card)
+        [encrypted1, encrypted2].forEach {
+            XCTAssertTrue($0.hasPrefix(prefix), $0)
+            XCTAssertEqual($0.count, 596)
+        }
+        XCTAssertNotEqual(encrypted1, encrypted2)
+    }
+    
     func testEncryptCreditCard() throws {
         let encryptor = try encryptor()
-        encryptor.privateEncryptorFactory = { Fake.aes }
-        encryptor.publicEncryptor = FakeRSA()
+        encryptor.privateEncryptorFactory = Fake.createAES
+        encryptor.publicEncryptor = Fake.RSA
         let card = CreditCard(cardNumber: "4111111111111111", expirationDate: "10/25", cvv: "123")
         let encrypted = try encryptor.encrypt(creditCard: card)
         let data = try XCTUnwrap(Data(base64Encoded: encrypted))
         let decoded = try XCTUnwrap(String(data: data, encoding: .ascii))
-        XCTAssertEqual(decoded, "GWSC|1|14340|IFJTQSA=|QUVTIHJhbmRvbSBzZWVk|IEFFUyA=",
-                       "should be format,version,key id, RSA, base64 encoded seed, AES encrypted data")
         
         let components = decoded.components(separatedBy: "|")
         XCTAssertEqual(6, components.count)
         XCTAssertEqual("GWSC", components[0], "format specifier")
         XCTAssertEqual("1", components[1], "version")
         XCTAssertEqual("14340", components[2], "key id")
-        XCTAssertEqual(base64(" RSA "), components[3], "RSA encrypted string")
-        XCTAssertEqual(base64(Fake.AES_seed), components[4])
-        XCTAssertEqual(base64(" AES "), components[5], "AES encrypted string")
+        XCTAssertEqual(Fake.RSA.encrypted.base64EncodedString(), components[3])
+        XCTAssertEqual(Fake.AES.seed.base64EncodedString(), components[4])
+        XCTAssertEqual(Fake.AES.encrypted.base64EncodedString(), components[5])
+
+        XCTAssertEqual(decoded, "GWSC|1|14340|Ug==|Uw==|QQ==",
+                       "should be format,version,key id, RSA, base64 encoded seed, AES encrypted data")
     }
     func testSubject() throws {
         XCTAssertEqual(try encryptor().subject, "www.safewebservices.com")
     }
-    func base64(_ string: String) -> String {
-        string.data(using: .utf8)!.base64EncodedString()
-    }
+
     func testValidKey() throws {
         let encryptor = try encryptor()
         XCTAssertEqual("14340", encryptor.keyId)
