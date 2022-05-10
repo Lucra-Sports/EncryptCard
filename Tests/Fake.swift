@@ -11,11 +11,11 @@ import XCTest
 @testable import EncryptCard
 
 struct FakeAES: PrivateEncryptor {
-    var key: Data = "AES random key that will be RSA encrypted".data(using: .utf8)!
+    var key: Data = "AES random key that will be RSA encrypted".utf8
     
-    let seed: Data = "S".data(using: .utf8)!
+    let seed: Data = "S".utf8
     
-    let encrypted = "A".data(using: .utf8)!
+    let encrypted = "A".utf8
     
     func encrypt(data: Data) throws -> Data {
         XCTAssertEqual(String(data: data, encoding: .utf8)!,
@@ -26,7 +26,7 @@ struct FakeAES: PrivateEncryptor {
 }
 
 struct FakeRSA: Encryptor {
-    let encrypted = "R".data(using: .utf8)!
+    let encrypted = "R".utf8
     
     func encrypt(data: Data) throws -> Data {
         XCTAssertEqual(data, Fake.AES.key, "should encode AES key")

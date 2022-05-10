@@ -13,14 +13,26 @@ protocol Encryptor {
 
 extension Encryptor {
     func encrypt(data: Data) throws -> String {
-        try encrypt(data: data).base64EncodedString()
+        try encrypt(data: data).base64
     }
     func encrypt(string: String) throws -> String {
-        try encrypt(data: string.data(using: .utf8)!)
+        try encrypt(data: string.utf8)
     }
 }
 
 protocol PrivateEncryptor: Encryptor {
     var key: Data { get }
     var seed: Data { get }
+}
+
+extension String {
+    var utf8: Data {
+        data(using: .utf8)!
+    }
+}
+
+extension Data {
+    var base64: String {
+        base64EncodedString()
+    }
 }

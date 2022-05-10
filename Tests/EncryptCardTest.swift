@@ -19,7 +19,7 @@ class EncryptCardTest: XCTestCase {
         )
     }
     
-    let prefix = "GWSC|1|14340".data(using: .utf8)!.base64EncodedString()
+    let prefix = "GWSC|1|14340".utf8.base64
     
     func testEncryptReturnsDifferentStringsEachTime() throws {
         let encryptor = try encryptor()
@@ -47,9 +47,9 @@ class EncryptCardTest: XCTestCase {
         XCTAssertEqual("GWSC", components[0], "format specifier")
         XCTAssertEqual("1", components[1], "version")
         XCTAssertEqual("14340", components[2], "key id")
-        XCTAssertEqual(Fake.RSA.encrypted.base64EncodedString(), components[3])
-        XCTAssertEqual(Fake.AES.seed.base64EncodedString(), components[4])
-        XCTAssertEqual(Fake.AES.encrypted.base64EncodedString(), components[5])
+        XCTAssertEqual(Fake.RSA.encrypted.base64, components[3])
+        XCTAssertEqual(Fake.AES.seed.base64, components[4])
+        XCTAssertEqual(Fake.AES.encrypted.base64, components[5])
 
         XCTAssertEqual(decoded, "GWSC|1|14340|Ug==|Uw==|QQ==",
                        "should be format,version,key id, RSA, base64 encoded seed, AES encrypted data")

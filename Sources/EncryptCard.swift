@@ -66,8 +66,8 @@ extension EncryptCard: Encryptor {
             Self.version,
             keyId,
             try publicEncryptor.encrypt(data: aes.key),
-            aes.seed.base64EncodedString(),
+            aes.seed.base64,
             try aes.encrypt(data: data)
-        ].joined(separator: "|").data(using: .ascii)!
+        ].joined(separator: "|").utf8
     }
 }
