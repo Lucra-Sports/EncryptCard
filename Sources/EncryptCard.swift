@@ -51,7 +51,7 @@ public class EncryptCard {
     static let version = "1"
     
     lazy var publicEncryptor: Encryptor = RSA(publicKey: publicKey)
-    var privateEncryptorFactory: () -> PrivateEncryptor = { AES() }
+    var createPrivateEncryptor: () -> PrivateEncryptor = AES.init
 
     public func encrypt(creditCard: CreditCard, includeCVV: Bool = true) throws -> String {
         try encrypt(string: creditCard.directPostString(includeCVV: includeCVV))
@@ -60,14 +60,14 @@ public class EncryptCard {
 
 extension EncryptCard: Encryptor {
     func encrypt(data: Data) throws -> Data {
-        let aes = privateEncryptorFactory()
+        let privateEncryptor = createPrivateEncryptor()
         return [
             Self.format,
             Self.version,
             keyId,
-            try publicEncryptor.encrypt(data: aes.key),
-            aes.seed.base64,
-            try aes.encrypt(data: data)
+            try publicEncryptor.encrypt(data: privateEncryptor.key),
+            privateEncryptor.seed.base64,
+            try privateEncryptor.encrypt(data: data)
         ].joined(separator: "|").utf8
     }
 }
